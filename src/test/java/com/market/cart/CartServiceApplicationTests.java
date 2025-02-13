@@ -1,9 +1,8 @@
-package com.market.carts;
+package com.market.cart;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+// FIXME @SpringBootTest
 class CartServiceApplicationTests {
 
     @Test

@@ -1,4 +1,4 @@
-package com.market.carts;
+package com.market.cart;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
