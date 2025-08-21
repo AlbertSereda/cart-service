@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-service-config
+data:
+  application.yaml: |
+    spring:
+      application:
+        name: cart-service
+      datasource:
+        url: jdbc:postgresql://${PG_DB_HOST:postgresdb}:${PG_DB_PORT:5432}/${POSTGRES_DB_CART_SERVICE:cart_service_db}
+        username: ${PG_DB_USERNAME_CART_SERVICE:cart_service}
+        password: ${PG_DB_PASS_CART_SERVICE:cart_service}
+        driver-class-name: org.postgresql.Driver
+      liquibase:
+        change-log: classpath:db/changelog/liquibase-master.yaml
+        enabled: true
+      jpa:
+        hibernate:
+          ddl-auto: none
+        show-sql: false
+        open-in-view: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      security:
+        oauth2:
+          client:
+            registration:
+              all-in-market:
+                client-id: ${OAUTH2_CLIENT_ID:clientId}
+                client-secret: ${OAUTH2_CLIENT_SECRET:secret}
+                authorization-grant-type: ${OAUTH2_CLIENT_GRANT_TYPE:client_credentials}
+                client-authentication-method: ${OAUTH2_CLIENT_AUTH_METHOD:client_secret_basic}
+            provider:
+              all-in-market:
+                token-uri: ${OAUTH2_CLIENT_TOKEN_URI:http://localhost:7070/oauth2/token}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  labels:
+    app: cart-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      name: cart-service
+      labels:
+        app: cart-service
+    spec:
+      containers:
+        - name: cart-service
+          image: albertsereda/all-in-market-cart-service
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_CONFIG_IMPORT
+              value: file:/config/
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: cart-service-config
+              mountPath: /config
+      volumes:
+        - name: cart-service-config
+          configMap:
+            name: cart-service-config
+      restartPolicy: Always
